@@ -1,0 +1,9 @@
+Term: Стартап
+Definition: Dummy definition for term "Стартап"
+
+Term: Венчурный капитал
+Definition: Dummy definition for term "Венчурный капитал"
+
+Term: Ангельский инвестор
+Definition: Dummy definition for term "Ангельский инвестор"
+
