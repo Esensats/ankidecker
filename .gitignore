@@ -1,2 +1,5 @@
 venv
 .env
+startup_terms_debug.txt
+startup_terms_anki.apkg
+definition_cache.json
