@@ -5,6 +5,7 @@ import time
 import requests
 import genanki
 import markdown2
+import argparse
 from dotenv import load_dotenv
 from tqdm import tqdm
 
@@ -120,7 +121,6 @@ class DeepInfraFetcher(DefinitionFetcher):
             self._dirty = True
             html_def = markdown2.markdown(definition)
             if time.time() - self._last_save_timestamp > self._save_interval:
-                print("Saving cache...")
                 self._save_cache()
                 self._last_save_timestamp = time.time()
             return html_def, False
@@ -203,38 +203,82 @@ def generate_output(
     output_strategy.output(terms_with_defs, output_path)
 
 
-def get_api_key():
-    api_key = os.getenv("DEEPINFRA_API_KEY")
-    if not api_key:
-        raise ValueError(
-            "API key not found. Please set the DEEPINFRA_API_KEY environment variable."
-        )
-    return api_key
-
-
-if __name__ == "__main__":
-    # Set DUMMY_MODE for dummy fetcher
-    DUMMY_MODE = False
-    # Set DEBUG_OUTPUT for txt output
-    DEBUG_OUTPUT = False
-
-    # INPUT_FILE = "terms_small.txt"
-    INPUT_FILE = "terms.txt"
-    OUTPUT_FILE = (
-        "startup_terms_debug.txt" if DEBUG_OUTPUT else "startup_terms_anki.apkg"
+def main():
+    parser = argparse.ArgumentParser(
+        description="Fetch definitions for terms and save them in a specified format."
     )
+    parser.add_argument(
+        "-i",
+        "--input_path",
+        type=str,
+        required=True,
+        help="Path to the input file containing terms. Each term should be on a new line.",
+    )
+    parser.add_argument(
+        "-o",
+        "--output_path",
+        type=str,
+        required=True,
+        help="Path to the output file where definitions will be saved.",
+    )
+    parser.add_argument(
+        "-m",
+        "--out_mode",
+        type=str,
+        choices=["debug", "anki"],
+        help="Output mode: 'debug' for plain text, 'anki' for Anki deck. Tries to guess the mode from the output file extension if not specified.",
+    )
+    parser.add_argument(
+        "-f",
+        "--fetcher",
+        type=str,
+        choices=["dummy", "deepinfra"],
+        default="deepinfra",
+        help="Fetcher to use: 'dummy' for testing, 'deepinfra' for real API calls (requires environment variable DEEPINFRA_API_KEY). Default is 'deepinfra'.",
+    )
+    
+    args = parser.parse_args()
 
     load_dotenv()
 
-    if not os.path.exists(INPUT_FILE):
-        print(f"Input file {INPUT_FILE} does not exist.")
+    def get_api_key():
+        api_key = os.getenv("DEEPINFRA_API_KEY")
+        if not api_key:
+            raise ValueError(
+                "API key not found. Please set the DEEPINFRA_API_KEY environment variable."
+            )
+        return api_key
+
+    def get_fetcher():
+        if args.fetcher == "dummy":
+            return DummyFetcher()
+        elif args.fetcher == "deepinfra":
+            return DeepInfraFetcher(api_key=get_api_key())
+        else:
+            raise ValueError(f"Unknown fetcher: {args.fetcher}")
+
+    def get_output_strategy():
+        if args.out_mode == "anki" or args.output_path.endswith(".apkg"):
+            return AnkiOutputStrategy()
+        elif args.out_mode == "debug" or args.output_path.endswith(".txt"):
+            return DebugOutputStrategy()
+        else:
+            raise ValueError(
+                "Output mode not specified or unsupported. Use --out_mode 'debug' or 'anki'."
+            )
+
+    if not os.path.exists(args.input_path):
+        print(f"Input file {args.input_path} does not exist.")
         exit(1)
-    with DummyFetcher() if DUMMY_MODE else DeepInfraFetcher(
-        api_key=get_api_key()
-    ) as fetcher:
-        terms = load_terms(INPUT_FILE)
-        strategy = DebugOutputStrategy() if DEBUG_OUTPUT else AnkiOutputStrategy()
-        generate_output(terms, fetcher, strategy, OUTPUT_FILE)
+
+    with get_fetcher() as fetcher:
+        terms = load_terms(args.input_path)
+        strategy = get_output_strategy()
+        generate_output(terms, fetcher, strategy, args.output_path)
         print(
-            f"Processed {len(terms)} terms using {strategy.__class__.__name__} and saved to {OUTPUT_FILE}."
+            f"Processed {len(terms)} terms using {strategy.__class__.__name__} and saved to {args.output_path}."
         )
+
+
+if __name__ == "__main__":
+    main()
