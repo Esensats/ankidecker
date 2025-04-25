@@ -119,6 +119,11 @@ class DeepInfraFetcher(DefinitionFetcher):
 class OutputStrategy(ABC):
     @abstractmethod
     def output(self, terms_with_defs: list, output_path: str):
+        """
+        Saves the terms and definitions to the specified output path using the implemented strategy.
+        :param terms_with_defs: List of tuples containing terms and their definitions.
+        :param output_path: Path to the output file.
+        """
         pass
 
 

@@ -66,6 +66,22 @@ You can change the system/user prompt in the `ankidecker.py` file.
 > When I have time (if this gets any interest / stars) I will provide a way to configure the prompt (and generally use the package) without going into the source code.
 > I will also add a way to use the package as a library (currently it is only usable as a command line tool).
 > The interface could also be improved to allow asynchrnous (parallel) especially for large lists of terms.
+> 
+> The output format is not hardcoded to Anki, you can also implement your own output format by implementing the `OutputStrategy` interface:
+
+```python
+class OutputStrategy(ABC):
+    @abstractmethod
+    def output(self, terms_with_defs: list, output_path: str):
+        """
+        Saves the terms and definitions to the specified output path using the implemented strategy.
+        :param terms_with_defs: List of tuples containing terms and their definitions.
+        :param output_path: Path to the output file.
+        """
+        pass
+```
+
+> So you can implement your own output format (e.g. CSV, JSON, etc.) if you want to use a different format than Anki. You can look at the `AnkiOutputStrategy` or the barebones `DebugOutputStrategy` class for an example of how to implement the `OutputStrategy` interface.
 
 ---
 
