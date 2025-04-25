@@ -65,7 +65,7 @@ You can change the system/user prompt in the `ankidecker.py` file.
 
 > When I have time (if this gets any interest / stars) I will provide a way to configure the prompt (and generally use the package) without going into the source code.
 > I will also add a way to use the package as a library (currently it is only usable as a command line tool).
-> The interface could also be improved to allow asynchrnous (parallel) especially for large lists of terms.
+> The interface could also be improved to allow asynchronous (parallel) fetches especially for large lists of terms.
 > 
 > The output format is not hardcoded to Anki, you can also implement your own output format by implementing the `OutputStrategy` interface:
 
