@@ -21,12 +21,10 @@ class DefinitionFetcher(ABC):
         """Closes any resources used by the fetcher."""
         pass
 
-    @abstractmethod
     def __enter__(self):
         """Enters the context manager."""
         return self
 
-    @abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Exits the context manager."""
         self.close()
@@ -41,13 +39,6 @@ class DummyFetcher(DefinitionFetcher):
     def close(self):
         # No resources to close in dummy fetcher
         pass
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
-        return False
 
 
 class DeepInfraFetcher(DefinitionFetcher):
@@ -66,12 +57,6 @@ class DeepInfraFetcher(DefinitionFetcher):
         self._dirty = False  # Track whether cache has been updated
         self._last_save_timestamp = time.time()
         self._save_interval = 15  # Save cache every 15 seconds
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
 
     def _load_cache(self) -> dict:
         if os.path.exists(self.cache_file):
